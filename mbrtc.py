@@ -262,9 +262,11 @@ def is_stable(A,domain="discrete"):
 
 def canon_ctrl(A,B):
     """Find similarity transformation to transform to controller canonical form."""
-    if not(is_reachable(A,B)): raise Exception("The state-space matrix pair (A,B) is not reachable.")
+    if not(is_reachable(A,B)):
+        raise Exception("The state-space matrix pair (A,B) is not reachable.")
     n,ni = np.shape(B)
-    if ni>1: raise NotImplementedError("System should have a single input.")
+    if ni>1:
+        raise NotImplementedError("System should have a single input.")
     a = np.poly(A)
     Actrl = np.diag(np.ones((n-1)),-1)
     Actrl[0,:] = -a[1:]/a[0]
@@ -286,9 +288,11 @@ def canon_ctrl(A,B):
 
 def canon_obsv(A,C):
     """Find similarity transformation to transform to observer canonical form."""
-    if not(is_observable(A,C)): raise Exception("The state-space matrix pair (A,C) is not observable.")
+    if not(is_observable(A,C)):
+        raise Exception("The state-space matrix pair (A,C) is not observable.")
     no,n = np.shape(C)
-    if no>1: raise NotImplementedError("System should have a single output.")
+    if no>1:
+        raise NotImplementedError("System should have a single output.")
     a = np.poly(A)
     Aobsv = np.diag(np.ones((n-1)),+1)
     Aobsv[:,0] = -a[1:]/a[0]
@@ -314,7 +318,8 @@ def place(A,B,pole_vec):
     """Calculates the state-feedback matrix L such that the poles are at
     the specified locations in the vector pole_vec."""
     n,ni = np.shape(B)
-    if ni>1: raise Exception("This pole-placement method only works for single-input systems")
+    if ni>1:
+        raise Exception("This pole-placement method only works for single-input systems")
     char_poly_desired = np.poly(pole_vec) # desired characteristic polynomial
     char_poly_actual = np.poly(A)         # characteristic polynomial of matrix A
     Tctrl = canon_ctrl(A,B) # this computes the matrix \tilde{W}_c W_c^(-1)

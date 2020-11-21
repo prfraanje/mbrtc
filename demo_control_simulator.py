@@ -75,8 +75,8 @@ class StateSpaceModelDiscreteTime:
     __slots__ = ('A','B','C','D','x','dt') # restrict to these attributes, for safety and speed
     def __init__(self,A,B,C,D,x0,dt):
         """Class for definition of Discrete Time State-Space Model:
-        x_{k+1} = A x_k + B u_k
-        y_k     = C x_k + D u_k
+            x_{k+1} = A x_k + B u_k
+            y_k     = C x_k + D u_k
         with x_k the state, u_k the input and y_k the output at some
         time instant k, dt is the time between two subsequent time instants.
         """

@@ -68,9 +68,11 @@ class Sentinel():
        Use isinstance(obj,Sentinel) to determine if obj is the sentinel.
        Just create the sentinel by calling: Sentinel().
     """
+    __slots__ = ()   # this class has no and should have no attributes
 
 # State-space model class:
 class StateSpaceModelDiscreteTime:
+    __slots__ = ('A','B','C','D','x','dt') # restrict to these attributes, for safety and speed
     def __init__(self,A,B,C,D,x0,dt):
         """Class for definition of Discrete Time State-Space Model:
         x_{k+1} = A x_k + B u_k

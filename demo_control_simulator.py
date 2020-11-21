@@ -106,7 +106,7 @@ class StateSpaceModelDiscreteTime:
 
     
 # process simulation task (more precisely: coroutine, same for 'tasks' below)
-async def process(shared_dict,dt=0.005):
+async def process(shared_dict,dt=0.002):
     """Simulation of the process, each iterations takes dt seconds.
        shared_dict is a dictionary that is shared by the various tasks.
        The process runs while shared_dict['run'] is True, and then it
@@ -125,13 +125,14 @@ async def process(shared_dict,dt=0.005):
     time_now_ns = time_ns()
     
     while shared_dict['run']:
+        time_prev_ns, time_now_ns = time_now_ns, time_ns()    # times in ns
+        shared_dict['dt'] = (time_now_ns - time_prev_ns)/1e6  # delta time in ms
         u = shared_dict['u']
         y = model(np.array([[u]]))[0,0]  # bit awkward but we need 1x1 matrix for a scalar
         shared_dict['y'] = y
-        time_prev_ns, time_now_ns = time_now_ns, time_ns()    # times in ns
-        shared_dict['dt'] = (time_now_ns - time_prev_ns) #/1e6  # delta time in ms
-        await asyncio.sleep(dt)   # wait some time, while other tasks can be done
-
+        dt_remaining = max(0,dt - (time_ns() - time_now_ns)/1e9)
+        await asyncio.sleep(dt_remaining)   # wait some time, while other tasks can be done
+        
         
 # controller task
 async def control(shared_dict,dt=0.05):
@@ -147,6 +148,7 @@ async def control(shared_dict,dt=0.05):
     uc = 0.
     y = 0.
     while shared_dict['run']:
+        time_now_ns = time_ns()
         if shared_dict['control']:
             dt = shared_dict['ctrl_dt']  # read dt to allow changes on the fly
             # Deadbeat controller, set/update controller parameters
@@ -163,8 +165,9 @@ async def control(shared_dict,dt=0.05):
         else:
             u = 0.
         shared_dict['u'] = u
-        await asyncio.sleep(dt)
-        
+        dt_remaining = max(0,dt - (time_ns() - time_now_ns)/1e9)
+        await asyncio.sleep(dt_remaining)
+            
 
 # command line repl (read, eval, print loop) task for user interaction
 async def repl(shared_dict):

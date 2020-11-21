@@ -147,7 +147,8 @@ async def control(shared_dict,dt=0.05):
     while shared_dict['run']:
         if shared_dict['control']:
             dt = shared_dict['ctrl_dt']  # read dt to allow changes on the fly
-            h2 = dt*dt                   # update controller parameters
+            # Deadbeat controller, set/update controller parameters
+            h2 = dt*dt
             r1 = 0.75
             s0 = 2.5/h2
             s1 = -1.5/h2

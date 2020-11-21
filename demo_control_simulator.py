@@ -139,15 +139,15 @@ async def control(shared_dict,dt=0.05):
        shared_dict['control'] is false it writes 0 as control value
        else then it calculates the control value from the value shared_dict['y'].
        The control value u is finally written in shared_dict['u']."""
-    # note, if dt is changed, following should change as well!
+    # put dt in a the shared_dict as ctrl_dt, so that it can be changed on the fly: 
     shared_dict['ctrl_dt'] = dt
     u = 0.
     uc = 0.
     y = 0.
     while shared_dict['run']:
         if shared_dict['control']:
-            dt = shared_dict['ctrl_dt']
-            h2 = dt*dt
+            dt = shared_dict['ctrl_dt']  # read dt to allow changes on the fly
+            h2 = dt*dt                   # update controller parameters
             r1 = 0.75
             s0 = 2.5/h2
             s1 = -1.5/h2
@@ -338,3 +338,11 @@ if __name__ == '__main__':
     plot_queue.close()     # close the plot_queue
     print('Done')
     
+
+# References:
+# - Karl. J. Åström and Björn Wittenmark, Computer-Controlled Systems -- Theory and Design, 3rd edition, Dover Publications, Inc., 2011.
+# Excellent reference on Python (e.g. Ch. 20 on multiprocessing Process and Queue is):
+# - David M. Beazley, Python -- Essential Reference, 4th edition, Pearson Education, 2009. (we look forward to the 5th edition with complete update for python 3, that appears in 2021)
+# Good references for async/await and asyncio are:
+# - Luciano Ramalho, Fluent Python -- Clear, Concise, and Effective Programming, O'Reilly, 2015.
+# - Gabriele Lanaro, Quan Nguyen and Sakis Kasampalis, Advanced Python Programming -- Learning path, Packt, 2019.

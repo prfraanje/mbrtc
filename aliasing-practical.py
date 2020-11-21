@@ -12,6 +12,7 @@ from matplotlib.widgets import Slider, TextBox, Button
 def calc_plot_data(duration,f,phase,fsample,number):
 
     def calc_alias(f,phase,fsample,number,t):
+        # following lines are to be adjusted
         x_alias = 0.*t
         falias = 0.
         return x_alias,falias

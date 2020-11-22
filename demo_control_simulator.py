@@ -70,11 +70,9 @@ class Sentinel():
        Use isinstance(obj,Sentinel) to determine if obj is the sentinel.
        Just create the sentinel by calling: Sentinel().
     """
-    __slots__ = ()   # this class has no and should have no attributes
 
 # State-space model class:
 class StateSpaceModelDiscreteTime:
-    __slots__ = ('A','B','C','D','x','dt') # restrict to these attributes, for safety and speed
     def __init__(self,A,B,C,D,x0,dt):
         """Class for definition of Discrete Time State-Space Model:
             x_{k+1} = A x_k + B u_k
@@ -230,7 +228,6 @@ async def printer(shared_dict,dt=1):
 # sacrificing some memory to prevent time-consuming memory shifting)
 class CyclicBuffer(object):
     """Implementation of a fast cyclic FIFO (first in first out) buffer."""
-    __slots__ = ('_length','_dims_sample','_buffer','_last')  # define slots for speed and safety
     def __init__(self,length=1,dims_sample=(1,)):
         """Create the cyclic buffer for length (integer) samples, where dims_sample is a 
            tuple specifying the dimensions of each sample. So when a sample is an array

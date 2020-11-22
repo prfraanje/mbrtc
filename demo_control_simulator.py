@@ -39,6 +39,7 @@
 # License: GPLv3
 
 import asyncio
+from asyncio import sleep # quicker access, because its intensively used
 
 # Plotting is deferred to a separate process, data is send over a Queue
 # (a Pipe can be used here as well, but Queue has better buffering and allows more control,
@@ -47,13 +48,14 @@ import asyncio
 from multiprocessing import Process, Queue, queues
 
 import time
-from time import sleep, time_ns
+from time import time_ns
 
 from math import pi, cos, sin
 
 import matplotlib.pyplot as plt
 
 import numpy as np
+from numpy import array # for quick access to np.array in 'real-time' code
 
 from prompt_toolkit import ANSI, PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
@@ -106,7 +108,7 @@ class StateSpaceModelDiscreteTime:
 
     
 # process simulation task (more precisely: coroutine, same for 'tasks' below)
-async def process(shared_dict,dt=0.002):
+async def process(shared_dict,dt=0.001):
     """Simulation of the process, each iterations takes dt seconds.
        shared_dict is a dictionary that is shared by the various tasks.
        The process runs while shared_dict['run'] is True, and then it
@@ -123,15 +125,15 @@ async def process(shared_dict,dt=0.002):
     x0 = np.array([[1.],[0.]])
     model = StateSpaceModelDiscreteTime(A,B,C,D,x0,h)
     time_now_ns = time_ns()
-    
-    while shared_dict['run']:
+    while True:
+        if not shared_dict['run']: break
         time_prev_ns, time_now_ns = time_now_ns, time_ns()    # times in ns
         shared_dict['dt'] = (time_now_ns - time_prev_ns)/1e6  # delta time in ms
         u = shared_dict['u']
-        y = model(np.array([[u]]))[0,0]  # bit awkward but we need 1x1 matrix for a scalar
+        y = model(array([[u]]))[0,0]  # bit awkward but we need 1x1 numpy matrix for a scalar
         shared_dict['y'] = y
         dt_remaining = max(0,dt - (time_ns() - time_now_ns)/1e9)
-        await asyncio.sleep(dt_remaining)   # wait some time, while other tasks can be done
+        await sleep(dt_remaining)   # wait some time, while other tasks can be done
         
         
 # controller task
@@ -147,7 +149,8 @@ async def control(shared_dict,dt=0.05):
     u = 0.
     uc = 0.
     y = 0.
-    while shared_dict['run']:
+    while True:
+        if not shared_dict['run']: break
         time_now_ns = time_ns()
         if shared_dict['control']:
             dt = shared_dict['ctrl_dt']  # read dt to allow changes on the fly
@@ -166,7 +169,7 @@ async def control(shared_dict,dt=0.05):
             u = 0.
         shared_dict['u'] = u
         dt_remaining = max(0,dt - (time_ns() - time_now_ns)/1e9)
-        await asyncio.sleep(dt_remaining)
+        await sleep(dt_remaining)
             
 
 # command line repl (read, eval, print loop) task for user interaction
@@ -189,7 +192,8 @@ async def repl(shared_dict):
                                   'u', 'y', 'plot_buffer',
                                   'ctrl_dt'])
     print('Enter your single line command and press return, enter \"stop\" to exit.')
-    while shared_dict['run']:
+    while True:
+        if not shared_dict['run']: break
         with patch_stdout(): # to prevent screen clutter at the prompt line
             res = await session.prompt_async(ANSI('\x1b[01;34m-> '),
                                              lexer=PygmentsLexer(Python3Lexer),
@@ -214,10 +218,11 @@ async def repl(shared_dict):
 # status printer task
 async def printer(shared_dict,dt=1):
     """printer task to shows some values in the shared_dict at a rate of dt seconds."""
-    while shared_dict['run']:
+    while True:
+        if not shared_dict['run']: break
         if shared_dict['print']:
             print(f"run = {shared_dict['run']}, control = {shared_dict['control']}, y = {shared_dict['y']}, u = {shared_dict['u']}")
-        await asyncio.sleep(dt)
+        await sleep(dt)
 
         
 # fast cyclic fifo buffer class for storing signal data
@@ -225,7 +230,7 @@ async def printer(shared_dict,dt=1):
 # sacrificing some memory to prevent time-consuming memory shifting)
 class CyclicBuffer(object):
     """Implementation of a fast cyclic FIFO (first in first out) buffer."""
-    __slots__ = ("_length","_dims_sample","_buffer","_last")  # define slots for speed and safety
+    __slots__ = ('_length','_dims_sample','_buffer','_last')  # define slots for speed and safety
     def __init__(self,length=1,dims_sample=(1,)):
         """Create the cyclic buffer for length (integer) samples, where dims_sample is a 
            tuple specifying the dimensions of each sample. So when a sample is an array
@@ -247,7 +252,7 @@ class CyclicBuffer(object):
         last = self._last     # pointer to new place
         length = self._length
         # store sample at position last and last-length:
-        self._buffer[last] = self._buffer[last+length] = np.array(sample)
+        self._buffer[last] = self._buffer[last+length] = sample
         self._last = (last + 1) % length
 
     def __call__(self):
@@ -258,10 +263,11 @@ class CyclicBuffer(object):
 # update plot buffer task
 async def update_plot_buffer(shared_dict,dt=0.005):
     """Task to update the cyclic buffer periodically with an interval of dt seconds."""
-    while shared_dict['run']:
+    while True:
+        if not shared_dict['run']: break
         sample = [shared_dict['y'], shared_dict['u'], shared_dict['dt']]
         shared_dict['plot_buffer'].update(sample)
-        await asyncio.sleep(dt)
+        await sleep(dt)
 
         
 # plotter task
@@ -270,14 +276,15 @@ async def plotter(plot_queue,shared_dict,dt=0.1):
        To save time, the data is send over the plot_queue to another process that does the actual
        plotting, see the plot_process function.
     """
-    while shared_dict['run']:
+    while True:
+        if not shared_dict['run']: break
         if shared_dict['plot']:
             data = shared_dict['plot_buffer'].get()
             try:
                 plot_queue.put_nowait(data)
             except queues.Full:
                 pass
-        await asyncio.sleep(dt)
+        await sleep(dt)
     plot_queue.put(Sentinel()) # send the sentinel to inform plot_process to stop
 
     
@@ -306,7 +313,7 @@ def plot_process(plot_queue):
             fig.canvas.draw()         # this and following line to 
             fig.canvas.flush_events() # update figure
         except queues.Empty:
-            pass
+            time.sleep(0.1)
     plt.close(fig)
     
 # main function:
@@ -329,7 +336,7 @@ async def main(plot_queue):
         process(shared_dict),
         control(shared_dict),
         repl(shared_dict),
-        printer(shared_dict),
+#        printer(shared_dict),
         update_plot_buffer(shared_dict),
         plotter(plot_queue,shared_dict),
     )

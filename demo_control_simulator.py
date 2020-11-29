@@ -79,14 +79,45 @@ class StateSpaceModelDiscreteTime:
             y_k     = C x_k + D u_k
         with x_k the state, u_k the input and y_k the output at some
         time instant k, dt is the time between two subsequent time instants.
+        All state-space matrices are numpy arrays with 2 dimensions, even for SISO systems.
+        At object creation they can be lists of lists, that will be converted to numpy arrays.
+        Example: 
+        1) The system
+              x_{k+1)} = 0.8 x_k + u_k
+              y_k      = 0.5 x_k
+           with initial-state x_0 = 0 and sampling time dt=0.1
+           is defined by 
+              StateSpaceModel([[0.8]],[[1]],[[0.5]],[[0]],[0],0.1)
+        2) The system
+              x_{k+1} = [ 0.9  0.1 ] x_k + [ 0 ] u_k
+                        [-0.1  0.5 ]       [ 1 ]
+              y_k     = [ 1    0   ] x_k
+           with initial-state x_0 = [0, 1]^T and sampling time dt=0.01
+           is defined by
+              StateSpaceModel([[0.9,0.1],[-0.1,0.5]],[[0],[1]],[[1,0]],[[0]],
+                              [[0],[1]],0.01)
+        3) Alternative of 2) where State-Space matrices are stored in variables as well:
+              A = np.array([[0.9,0.1],[-0.1,0.5]])
+              B = np.array([[0],[1]])
+              C = np.array([[1,0]])
+              D = np.array([[0]])
+              x0 = np.array([[0],[1]])
+              dt = 0.01
+              StateSpaceModel(A,B,C,D,x0,dt)
         """
-        self.A = A    # state-transition matrix
-        self.B = B    # input matrix
-        self.C = C    # output matrix
-        self.D = D    # direct feedthrough
-        self.x = x0   # initial state
+        self.A = np.array(A)    # state-transition matrix
+        self.B = np.array(B)    # input matrix
+        self.C = np.array(C)    # output matrix
+        self.D = np.array(D)    # direct feedthrough
+        self.x = np.array(x0)   # initial state
         self.dt = dt  # sampling time, sometimes written as h
 
+    def __repr__(self):
+        return f'StateSpaceModelDiscreteTime({self.A!r},{self.B!r},{self.C!r},{self.D!r},{self.x!r},{self.dt!r})'
+
+    def __str__(self):
+        return f'Discrete Time State-Space Model object with sampling time dt = {self.dt}\nA =\n{self.A}\nB =\n {self.B}\nC =\n{self.C}\nD =\n {self.D}\nThe current state is x =\n {self.x}'
+    
     def run(self,u):
         """Perform one iteration of the state-space model, 
         updates the state self.x and returns the output y.
@@ -106,7 +137,7 @@ class StateSpaceModelDiscreteTime:
 
     
 # process simulation task (more precisely: coroutine, same for 'tasks' below)
-async def process(shared_dict,dt=0.001):
+async def process(shared_dict,dt=0.005):
     """Simulation of the process, each iterations takes dt seconds.
        shared_dict is a dictionary that is shared by the various tasks.
        The process runs while shared_dict['run'] is True, and then it

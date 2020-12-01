@@ -42,9 +42,9 @@ def spike(NS=100,at_sample=1):
     return signal
 
 def random_impulses(av_samples_per_spike=10,NS=100,nchan=1):
-    signal = np.zeros((NS,nchan))
+    signal = np.zeros((nchan,NS))
     for i in range(nchan):
-        signal[:,i] = np.floor(np.random.randint(0,av_samples_per_spike+1,NS)/av_samples_per_spike)
+        signal[i,:] = np.floor(np.random.randint(0,av_samples_per_spike+1,NS)/av_samples_per_spike)
     return signal
 
 def c2d_zoh_AB(Ac,Bc,h):

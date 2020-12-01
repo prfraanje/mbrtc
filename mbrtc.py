@@ -41,6 +41,20 @@ def spike(NS=100,at_sample=1):
     signal[0,at_sample] = 1.
     return signal
 
+def step_signal(NS=100,stepsize=1,sample_of_step=None):
+    if sample_of_step is None: # make step at sample sample_of_step
+        signal = stepsize*np.ones((1,NS))
+        signal[0,0:sample_of_step] = 0.
+    else:  # make step directly from beginning
+        signal = stepsize*np.ones((1,NS))
+    return signal
+
+def impulse_signal(NS=100,impulsesize=1,sample_of_impulse=None):
+    if sample_of_step is None: # make step at sample sample_of_impulse
+        sample_of_step = 0
+    signal = impulsesize * spike(NS=NS,at_sample=sample_of_impulse)
+    return signal
+
 def random_impulses(av_samples_per_spike=10,NS=100,nchan=1):
     signal = np.zeros((nchan,NS))
     for i in range(nchan):

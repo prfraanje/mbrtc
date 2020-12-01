@@ -37,8 +37,8 @@ from scipy.signal import tf2ss, ss2tf, lsim2
 #    Dd       - direct feedthrough matrix (no x ni) (D in Computer-Controlled Systems)
 
 def spike(NS=100,at_sample=1):
-    signal = np.zeros((NS,1))
-    signal[at_sample,0] = 1.
+    signal = np.zeros((1,NS))
+    signal[0,at_sample] = 1.
     return signal
 
 def random_impulses(av_samples_per_spike=10,NS=100,nchan=1):

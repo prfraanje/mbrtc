@@ -49,8 +49,8 @@ def step_signal(NS=100,stepsize=1,sample_of_step=None):
     return signal
 
 def impulse_signal(NS=100,impulsesize=1,sample_of_impulse=None):
-    if sample_of_step is None: # make step at sample sample_of_impulse
-        sample_of_step = 0
+    if sample_of_impulse is None: # make impulse at sample sample_of_impulse
+        sample_of_impulse = 0
     signal = impulsesize * spike(NS=NS,at_sample=sample_of_impulse)
     return signal
 

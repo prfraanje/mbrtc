@@ -6,7 +6,7 @@
 
 import numpy as np
 from scipy.linalg import expm, logm
-from scipy.signal import tf2ss, ss2tf, lsim2
+from scipy.signal import tf2ss, ss2tf, lsim
 # also see: https://docs.scipy.org/doc/scipy/reference/signal.html
 
 # Symbols (variations may be made for clarity, depending on context,
@@ -141,10 +141,9 @@ def d2c_characteristic_equation(ad,h):
     return ac
 
 def sim_continuous(A,B,C,D,u=None,t=None,x0=None,return_X=False):
-    # use lsim2 (scipy.signal.lsim2) to simulate continuous-time linear state-space model
-    # lsim2 uses on its turn the function scipy.integrate.odeint.
-    # also see documentation of scipy.signal.lsim2
-    T,yout,xout = lsim2((A,B,C,D), U=u, T=t, X0=x0)
+    # use lsim (scipy.signal.lsim) to simulate continuous-time linear state-space model
+    # also see documentation of scipy.signal.lsim
+    T,yout,xout = lsim((A,B,C,D), U=u, T=t, X0=x0)
     if return_X:
         return T,yout,xout
     else:

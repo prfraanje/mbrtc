@@ -1,0 +1,14 @@
+# Requirements for Model-Based Real-Time Control (mbrtc)
+# Python 3.7 or higher required
+
+# Core dependencies
+numpy>=1.18.0
+scipy>=1.4.0
+
+# For Jupyter notebooks
+jupyter>=1.0.0
+notebook>=6.0.0
+ipykernel>=5.0.0
+
+# For plotting (used in examples and notebooks)
+matplotlib>=3.1.0

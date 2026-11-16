@@ -220,7 +220,7 @@ async def repl(shared_dict):
                                   'print', 'run', 'control', 'plot',
                                   'u', 'y', 'plot_buffer',
                                   'ctrl_dt'])
-    print('Enter your single line command and press return, enter \"stop\" to exit.')
+    print('Enter your single line command and press return, enter \"stop\" to exit.\n For example: shared_dict[\'ctrl_dt\'] = 0.001 or enter just shared_dict to see it\'s current value')
     while True:
         if not shared_dict['run']: break
         with patch_stdout(): # to prevent screen clutter at the prompt line
